@@ -19,37 +19,88 @@
 </head>
 
 <body>
-    <div class="center-screen" style="margin-left: 30px; margin-right: 30px">
-        <div id="main">
+    <div class="center-screen" style="margin-left: 5%; margin-right: 5%">
+        <div id="main" style="width: 100%">
 
         </div>
     </div>
     <script type="text/babel">
-        function App(props) {
-            const getNewQuestion = () => {
-                const a = Math.floor(Math.random() * 10);
-                const b = Math.floor(Math.random() * 8) + 2;
+        function random(i) {
+            return Math.floor(Math.random() * i);
+        }
+        
+        function getInitialState() {
 
-                if (Math.floor(Math.random() * 2) == 0) {
-                    return {
-                        question: a + " + " + b,
-                        answer: a + b
-                    };
+            const localStorageState = window.localStorage.getItem("state");
 
-                } else {
-                    return {
-                        question: (a < b ? a + 10 : a) + " - " + b,
-                        answer: (a < b ? a + 10 : a) - b
-                    };
+            if(localStorageState) {
+                return JSON.parse(localStorageState);
+            }
+
+            const state = {
+                questions: [],
+                totalTime: 0,
+                score: []
+            }
+
+            function addQuestion(text, answer) {
+                const initialSpeed = 30;
+
+                state.questions.push({
+                    text: text,
+                    answer: answer,
+                    time: initialSpeed
+                });
+
+                state.totalTime += initialSpeed;
+            }
+            
+            for(var a = 0; a < 10; a++) {
+                for(var b = 0; b < 10; b++) {
+                    addQuestion(a + " + " + b, a + b);
                 }
             }
- 
+
+            for(var a = 0; a < 10; a++) {
+                for(var b = 0; b < 10; b++) {
+                    addQuestion((a < b ? a + 10 : a) + " - " + b, (a < b ? a + 10 : a) - b);
+                }
+            }
+
+            return state;
+        }
+
+        function App(props) {
+            const [state, _setState] = React.useState(getInitialState);
+            const setState = cb => {
+                _setState(oldState => {
+                    const newState = cb(oldState);
+                    window.localStorage.setItem("state", JSON.stringify(newState));
+                    return newState;
+                });
+            };
+
+            const nextQuestion = () => {
+                const t = random(state.totalTime) 
+                var totalTime = 0;
+                for(var i = 0; i < state.questions.length; i++) {
+                    totalTime += state.questions[i].time;
+                    if (totalTime >= t) {
+                        return {
+                            index: i,
+                            startTime: new Date()
+                        };
+                    }
+                }
+            };
+
+            const [current, setCurrent] = React.useState(nextQuestion);
+
             const [value, setValue] = React.useState("");
-            const [score, setScore] = React.useState(0);
-            const [scoreEmojis, setScoreEmojis] = React.useState("");
-            const [question, setQuestion] = React.useState(getNewQuestion());
+
             const [visible, setVisible] = React.useState(false);
-            const [alert, setAlert] = React.useState({});
+            const [banner, setBanner] = React.useState({});
+
             const inputRef = React.useRef(null);
 
             const emojis = ["😀", "😁", "😂", "🤣", "😃", "😄", "😅", "😆", "😉", "😊", "😋", "😎", "😍", "🥰", "😘", "😗", "😙", "😚", "☺️", "🙂", "🤗", "🤩", "🤔", "🤨", "😐", "😑", "😶", "🙄", "😏", "😣", "😥", "😮", "🤐", "😯", "😪", "😫", "😴", "😌", "😛", "😜", "😝", "🤤", "😒", "😓", "😔", "😕", "🙃", "🤑", "😲", "☹️", "🙁", "😖", "🥵", "😞", "😟", "🥶", "🥴", "😤", "😢", "😭", "😦", "😧", "🥳", "😨", "😩", "🤯", "😬", "😰", "😱", "😳", "🤪", "😵", "😡", "🥺", "😠", "🤬", "😷", "🤒", "🤕", "🤢", "🤮", "🤧", "😇", "🤠", "🤥", "🤫", "🤭", "🧐", "🤓", "😈", "👿", "🤡", "👹", "👺", "💀", "☠️", "👻", "👽", "👾", "🤖", "💩", "🙊",
@@ -89,22 +140,49 @@
                 "That isn't it, try again",
             ]
 
-
             const onSubmit = e=>{
                 setVisible(true);
                 setTimeout(()=>setVisible(false), 3000);
 
-                if(question.answer == value) {
-                    setScore(s=>s+1);
-                    setScoreEmojis(s=>s+emojis[Math.floor(Math.random() * emojis.length)]);
-                    setQuestion(getNewQuestion());
-                    setAlert({
+                if(state.questions[current.index].answer == value) {
+                    setState(oldState=>{
+                        const todayDate = new Date();
+                        todayDate.setHours(0);
+                        todayDate.setMinutes(0);
+                        todayDate.setSeconds(0);
+                        todayDate.setMilliseconds(0);
+                        const today = todayDate.getTime();
+
+                        if(oldState.score.length == 0 || oldState.score[oldState.score.length - 1].date - today != 0) {
+                            oldState.score.push({date: today, score: 0, emojis: ""});
+                        }
+                        oldState.score[oldState.score.length - 1].score++;
+                        oldState.score[oldState.score.length - 1].emojis += emojis[random(emojis.length)];
+                            
+                        const oldTime = oldState.questions[current.index].time;
+                        oldState.totalTime -= oldTime;
+                            
+                        const secondsToAnswer = (new Date() - current.startTime) / 1000;
+
+                        const newTime = secondsToAnswer < 3 ? 3 : secondsToAnswer > 60 ? oldTime : secondsToAnswer;
+
+                        const averageTime = Math.round(oldTime * 0.5 + newTime * 0.5);
+                            
+                        oldState.questions[current.index].time = averageTime;
+                        oldState.totalTime += averageTime;
+
+                        return oldState;
+                    });
+                        
+                    setCurrent(nextQuestion());
+
+                    setBanner({
                         class: "alert-success",
                         text: successText[Math.floor(Math.random() * successText.length)] + "!"
                     })
 
                 } else {
-                    setAlert({
+                    setBanner({
                         class: "alert-danger",
                         text: failText[Math.floor(Math.random() * failText.length)] + "!"
                     })
@@ -115,30 +193,41 @@
                 inputRef.current.focus();
                 e.preventDefault();
             }
-
+            
             return (
                 <h1>
                     <div style={{ textAlign: "center", width: "auto" }}>
                         Robyn's take aways and adds
                     </div>
                     <div style={{opacity: visible?1:0, transitionProperty: "opacity", transitionDuration: visible?"0s":"1s"}}>
-                        <div style={{textAlign: "center", width: "auto"}} className={"alert " + alert.class}>
-                            {alert.text}
+                        <div style={{textAlign: "center", width: "auto"}} className={"alert " + banner.class}>
+                            {banner.text}
                         </div>
                     </div>
                     <div className="shadow p-3 mb-5 bg-white rounded">
                         <div style={{padding: "90px"}}>
                             <form className="form-group" onSubmit={onSubmit} style={{textAlign: "center"}}>
-                                <label htmlFor="answer" style={{textAlign: "center"}}> {question.question} </label>
+                                <label htmlFor="answer" style={{textAlign: "center"}}> {state.questions[current.index].text} </label>
                                 <div><input autoFocus={true} style={{margin: "auto", position: "relative", textAlign: "center", width: "10em"}} className="form-control form-control-lg" id="answer" ref={inputRef} type="number" value={value} onChange={e=>setValue(e.target.value)} /></div>
                                 <span><input className="btn btn-primary" type="submit" value="Submit" /></span>
                             </form>
-                            <div style={{textAlign: "center"}}>{scoreEmojis}</div>
-                            {score > 0 ? <div style={{textAlign: "center", margin: 10}}><span className="badge badge-success">{score}</span></div> : <div/>}
-                        </div>
+                            <Score score={state.score}/>
+                       </div>
                     </div>
                 </h1>
                 );
+        }
+
+        function Score(props) {
+            const score = props.score.slice();
+            return score.reverse().map(e=>{
+                return <div>
+                    <div style={{ textAlign: "left" }}><h5><span className="badge badge-light">{new Date(e.date).toDateString()}</span></h5></div>
+                    <div style={{ textAlign: "center" }}>{e.emojis}</div>
+                    {e.score > 0 ? <div style={{ textAlign: "center", margin: 20, marginBottom: 40}}><span className="badge badge-success">{e.score}</span></div> : <div />}
+                    <hr/>
+                </div>
+            })
         }
 
         ReactDOM.render(<App />, document.getElementById('main'));

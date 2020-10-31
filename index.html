@@ -168,7 +168,7 @@
                             oldState.score.push({date: today, score: 0, emojis: ""});
                         }
                         oldState.score[oldState.score.length - 1].score++;
-                        oldState.score[oldState.score.length - 1].emojis += emojis[random(emojis.length)];
+                        oldState.score[oldState.score.length - 1].emojis = emojis[random(emojis.length)] + oldState.score[oldState.score.length - 1].emojis;
                             
                         const oldTime = oldState.questions[current.index].time;
                         oldState.totalTime -= oldTime;

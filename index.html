@@ -15,6 +15,7 @@
             text-align: center;
             min-height: 100vh;
         }
+
     </style>
 </head>
 
@@ -31,13 +32,23 @@
         
         function getInitialState() {
 
-            const localStorageState = window.localStorage.getItem("state");
+            var localStorageState = window.localStorage.getItem("state");
 
+            var state;
             if(localStorageState) {
-                return JSON.parse(localStorageState);
+                state = JSON.parse(localStorageState);
             }
 
+            if(!state) {
+                state = v1state();
+            }
+
+            return state;
+        }
+
+        function v1state() {
             const state = {
+                version: 1,
                 questions: [],
                 totalTime: 0,
                 score: []
@@ -205,10 +216,10 @@
                         </div>
                     </div>
                     <div className="shadow p-3 mb-5 bg-white rounded">
-                        <div style={{padding: "90px"}}>
+                        <div style={{padding: "30px"}}>
                             <form className="form-group" onSubmit={onSubmit} style={{textAlign: "center"}}>
-                                <label htmlFor="answer" style={{textAlign: "center"}}> {state.questions[current.index].text} </label>
-                                <div><input autoFocus={true} style={{margin: "auto", position: "relative", textAlign: "center", width: "10em"}} className="form-control form-control-lg" id="answer" ref={inputRef} type="number" value={value} onChange={e=>setValue(e.target.value)} /></div>
+                                <label htmlFor="answer" style={{textAlign: "center", fontSize:"2em"}}> {state.questions[current.index].text} </label>
+                                <div><input autoFocus={true} style={{margin: "auto", fontSize:"2em", position: "relative", textAlign: "center", width: "5em"}} className="form-control form-control-lg" id="answer" ref={inputRef} type="number" value={value} onChange={e=>setValue(e.target.value)} /></div>
                                 <span><input className="btn btn-primary" type="submit" value="Submit" /></span>
                             </form>
                             <Score score={state.score}/>
@@ -221,7 +232,7 @@
         function Score(props) {
             const score = props.score.slice();
             return score.reverse().map(e=>{
-                return <div>
+                return <div style={{ marginLeft:"10%", marginRight:"10%" }}>
                     <div style={{ textAlign: "left" }}><h5><span className="badge badge-light">{new Date(e.date).toDateString()}</span></h5></div>
                     <div style={{ textAlign: "center" }}>{e.emojis}</div>
                     {e.score > 0 ? <div style={{ textAlign: "center", margin: 20, marginBottom: 40}}><span className="badge badge-success">{e.score}</span></div> : <div />}

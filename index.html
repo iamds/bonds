@@ -43,7 +43,36 @@
                 state = v1state();
             }
 
+            if(state.version == 1) {
+                state = v2state(state);
+                state.version = 2;
+            }
+
             return state;
+        }
+
+        function v2state(state) {
+            const timesTables = [2,3,5,10];
+            for(var a = 0; a < 10; a++) {
+                for(var b = 0; b < 10; b++) {
+                    if ((timesTables.indexOf(a) > -1) || (timesTables.indexOf(b) > -1)) {
+                        addQuestion(state, a + " x " + b, a * b, 60);
+                    }
+                }
+            }
+
+            return state;
+        }
+
+        function addQuestion(state, text, answer, initialSpeed) {
+
+            state.questions.push({
+                text: text,
+                answer: answer,
+                time: initialSpeed
+            });
+
+            state.totalTime += initialSpeed;
         }
 
         function v1state() {
@@ -54,35 +83,25 @@
                 score: []
             }
 
-            function addQuestion(text, answer) {
-                const initialSpeed = 30;
+           
+            for(var a = 0; a < 10; a++) {
+                for(var b = 0; b < 10; b++) {
+                    addQuestion(state, a + " + " + b, a + b, 30);
+                }
+            }
 
-                state.questions.push({
-                    text: text,
-                    answer: answer,
-                    time: initialSpeed
-                });
-
-                state.totalTime += initialSpeed;
+            for(var a = 0; a < 10; a++) {
+                for(var b = 0; b < 10; b++) {
+                    addQuestion(state, (a < b ? a + 10 : a) + " - " + b, (a < b ? a + 10 : a) - b, 30);
+                }
             }
             
-            for(var a = 0; a < 10; a++) {
-                for(var b = 0; b < 10; b++) {
-                    addQuestion(a + " + " + b, a + b);
-                }
-            }
-
-            for(var a = 0; a < 10; a++) {
-                for(var b = 0; b < 10; b++) {
-                    addQuestion((a < b ? a + 10 : a) + " - " + b, (a < b ? a + 10 : a) - b);
-                }
-            }
-
             return state;
         }
 
         function App(props) {
             const [state, _setState] = React.useState(getInitialState);
+            console.log(state);
             const setState = cb => {
                 _setState(oldState => {
                     const newState = cb(oldState);

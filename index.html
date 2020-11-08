@@ -47,12 +47,30 @@
                 state = v2state(state);
                 state.version = 2;
             }
+            
+            if(state.version == 2) {
+                state = v3state(state);
+                state.version = 3;
+            }
 
             return state;
         }
 
         function v2state(state) {
-            const timesTables = [2,3,4,5,10];
+            const timesTables = [2,3,5,10];
+            for(var a = 0; a < 10; a++) {
+                for(var b = 0; b < 10; b++) {
+                    if ((timesTables.indexOf(a) > -1) || (timesTables.indexOf(b) > -1)) {
+                        addQuestion(state, a + " x " + b, a * b, 60);
+                    }
+                }
+            }
+
+            return state;
+        }
+        
+        function v3state(state) {
+            const timesTables = [4];
             for(var a = 0; a < 10; a++) {
                 for(var b = 0; b < 10; b++) {
                     if ((timesTables.indexOf(a) > -1) || (timesTables.indexOf(b) > -1)) {

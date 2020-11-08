@@ -74,7 +74,9 @@
             for(var a = 0; a < 10; a++) {
                 for(var b = 0; b < 10; b++) {
                     if ((timesTables.indexOf(a) > -1) || (timesTables.indexOf(b) > -1)) {
-                        addQuestion(state, a + " x " + b, a * b, 60);
+                        if(state.questions.filter(q=>q.text != (a + " x " + b))).length == 0) {
+                            addQuestion(state, a + " x " + b, a * b, 60);
+                        }
                     }
                 }
             }

@@ -48,15 +48,10 @@
                 state.version = 2;
             }
             
-            if(state.version == 2) {
-                state = v3state(state);
-                state.version = 3;
-            }
+            state = v3state(state);
+            state = v4state(state);
 
-            if(state.version == 3) {
-                state = v4state(state);
-                state.version = 4;
-            }
+            state.version = 5
 
             return state;
         }
@@ -79,7 +74,7 @@
             for(var a = 0; a < 10; a++) {
                 for(var b = 0; b < 10; b++) {
                     if ((timesTables.indexOf(a) > -1) || (timesTables.indexOf(b) > -1)) {
-                        if(state.questions.filter(q=>q.text != (a + " x " + b)).length == 0) {
+                        if(state.questions.filter(q=>q.text == (a + " x " + b)).length == 0) {
                             addQuestion(state, a + " x " + b, a * b, 60);
                         }
                     }
@@ -94,7 +89,7 @@
             for(var a = 0; a < 10; a++) {
                 for(var b = 0; b < 10; b++) {
                     if ((timesTables.indexOf(a) > -1) || (timesTables.indexOf(b) > -1)) {
-                        if(state.questions.filter(q=>q.text != (a + " x " + b)).length == 0) {
+                        if(state.questions.filter(q=>q.text == (a + " x " + b)).length == 0) {
                             addQuestion(state, a + " x " + b, a * b, 60);
                         }
                     }
@@ -151,13 +146,32 @@
             };
 
             const nextQuestion = () => {
-                const t = random(state.totalTime) 
-                var totalTime = 0;
+                var filter = a=>true;
+                if(window.location.hash) {
+                    const operation = window.location.hash.substr(1,1);
+                    const number = window.location.hash.substr(2,1);
+                    filter = a=> {
+                        const sp = a.split(" ");
+                        return sp[1] == operation && (sp[0] == number || sp[2] == number);
+                    }
+                }
+
+                const selectedQuestions = [];
+                var selectedTotalTime = 0;
                 for(var i = 0; i < state.questions.length; i++) {
-                    totalTime += state.questions[i].time;
+                    if(filter(state.questions[i].text)) {
+                        selectedQuestions.push(i);
+                        selectedTotalTime += state.questions[i].time;
+                    }
+                }
+
+                const t = random(selectedTotalTime) 
+                var totalTime = 0;
+                for(var i = 0; i < selectedQuestions.length; i++) {
+                    totalTime += state.questions[selectedQuestions[i]].time;
                     if (totalTime >= t) {
                         return {
-                            index: i,
+                            index: selectedQuestions[i],
                             startTime: new Date()
                         };
                     }

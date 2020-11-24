@@ -53,6 +53,11 @@
                 state.version = 3;
             }
 
+            if(state.version == 3) {
+                state = v4state(state);
+                state.version = 4;
+            }
+
             return state;
         }
 
@@ -71,6 +76,21 @@
         
         function v3state(state) {
             const timesTables = [4];
+            for(var a = 0; a < 10; a++) {
+                for(var b = 0; b < 10; b++) {
+                    if ((timesTables.indexOf(a) > -1) || (timesTables.indexOf(b) > -1)) {
+                        if(state.questions.filter(q=>q.text != (a + " x " + b)).length == 0) {
+                            addQuestion(state, a + " x " + b, a * b, 60);
+                        }
+                    }
+                }
+            }
+
+            return state;
+        }
+
+        function v4state(state) {
+            const timesTables = [8];
             for(var a = 0; a < 10; a++) {
                 for(var b = 0; b < 10; b++) {
                     if ((timesTables.indexOf(a) > -1) || (timesTables.indexOf(b) > -1)) {

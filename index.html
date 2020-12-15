@@ -84,6 +84,27 @@
             });
         }
 
+        function Stats(props) {
+            const [state, _setState] = React.useState(getInitialState);
+            
+            return <table className="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Question</th>
+                        <th scope="col">Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {state.questions.sort((a, b) => b.time - a.time).map(q=>{
+                        return <tr>
+                            <td>{q.text}</td>
+                            <td>{Math.round(Math.sqrt(q.time))}s</td>
+                        </tr>
+                    })}
+                </tbody>
+            </table>
+        }
+ 
         function App(props) {
             const [state, _setState] = React.useState(getInitialState);
             console.log(state);
@@ -261,7 +282,11 @@
                 </div>
             })
         }
+            if (window.location.hash && window.location.hash.substring(1) == "stats") {
+                ReactDOM.render(<Stats />, document.getElementById('main'));
+            } else {
+                ReactDOM.render(<App />, document.getElementById('main'));
+            }
 
-        ReactDOM.render(<App />, document.getElementById('main'));
     </script>
 </body>

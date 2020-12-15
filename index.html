@@ -39,7 +39,7 @@
                 state = JSON.parse(localStorageState);
             }
 
-            if (!state) {
+            if (!state || !state.version) {
                 const state = {
                     version: 1,
                     questions: [],
